@@ -5,8 +5,29 @@ export const EMAIL = 'info@artixglobal.com'
 export const NEON = '#3dff7a'
 export const NEON_RED = '#ff2e4d'
 export const ADDRESS = '3 Arabian Crescent, Leeuwenhof, Tygervalley, Western Cape, 7441, South Africa'
+export const SITE_NAME = 'Artix Global'
+export const SITE_TITLE = 'Artix Global | Trade Global Markets on nTrader'
+export const SITE_DESC = 'Trade forex, precious metals, commodities, stocks, indices and crypto on nTrader. Raw spreads from 0.0 pips, leverage up to 1:200, start from $50.'
 
-const p = (s: string) => `${ORIGIN}/${s}/`
+export interface OgImg { src: string, w?: number, h?: number, alt: string }
+export const OG_IMG: OgImg = { src: '/img/ntrader-windows/chart.webp', w: 1600, h: 1172, alt: 'nTrader trading terminal by Artix Global' }
+
+export const ORG_ID = `${ORIGIN}/#org`
+export const ORG = {
+  '@type': ['Organization', 'FinancialService'],
+  '@id': ORG_ID,
+  name: SITE_NAME,
+  legalName: 'Artix Global Trading (Pty) Ltd',
+  url: `${ORIGIN}/`,
+  logo: { '@type': 'ImageObject', url: `${ORIGIN}/logo.svg` },
+  image: `${ORIGIN}${OG_IMG.src}`,
+  description: SITE_DESC,
+  email: EMAIL,
+  address: { '@type': 'PostalAddress', streetAddress: '3 Arabian Crescent, Leeuwenhof', addressLocality: 'Tygervalley', addressRegion: 'Western Cape', postalCode: '7441', addressCountry: 'ZA' },
+  areaServed: 'Worldwide'
+}
+
+const p = (s: string) => `/${s}/`
 
 export interface NavLink { label: string, href: string, note?: string }
 export interface NavGroup { label: string, links: NavLink[] }
@@ -110,33 +131,18 @@ export const PLATFORM = {
   }
 }
 
-export type DlIcon = 'desktop' | 'web' | 'mobile' | 'windows' | 'ios' | 'android' | 'play'
+export type DlIcon = 'desktop' | 'web' | 'mobile'
 export interface Download { id: string, label: string, title: string, href: string, icon: DlIcon }
 
-export const DOWNLOADS: { id: 'ntrader' | 'mt5', label: string, desc: string, more?: { label: string, href: string }, opts: Download[] }[] = [
-  {
-    id: 'ntrader',
-    label: 'nTrader',
-    desc: 'Our own terminal on desktop, browser and mobile, with one login across every screen.',
-    opts: [
-      { id: 'desktop', label: 'Desktop', title: 'A full workstation on Windows', href: p('ntrader-windows'), icon: 'desktop' },
-      { id: 'web', label: 'Web', title: 'Open a browser and trade', href: LOGIN, icon: 'web' },
-      { id: 'mobile', label: 'Mobile', title: 'Markets in your pocket', href: p('ntrader-mobile'), icon: 'mobile' }
-    ]
-  },
-  {
-    id: 'mt5',
-    label: 'MetaTrader 5',
-    desc: 'The industry-standard terminal, connected to the ArtixCapital-Server.',
-    opts: [
-      { id: 'windows', label: 'Windows', title: 'Desktop terminal', href: 'https://download.terminal.free/cdn/web/artix.capital.ltd/mt5/artixcapital5setup.exe', icon: 'windows' },
-      { id: 'web', label: 'Web', title: 'Trade in your browser', href: 'https://web.artixcapital.com/terminal', icon: 'web' },
-      { id: 'ios', label: 'iOS', title: 'iPhone and iPad', href: 'https://download.terminal.free/cdn/mobile/mt5/ios?server=ArtixCapital-Server', icon: 'ios' },
-      { id: 'android', label: 'Android .APK', title: 'Phone and tablet, direct download', href: 'https://download.terminal.free/cdn/web/metaquotes.software.corp/mt5/metatrader5.apk', icon: 'android' },
-      { id: 'playstore', label: 'Google Play', title: 'Android app', href: 'https://download.terminal.free/cdn/mobile/mt5/android?server=ArtixCapital-Server', icon: 'play' }
-    ]
-  }
-]
+export const NTRADER: { label: string, desc: string, opts: Download[] } = {
+  label: 'nTrader',
+  desc: 'Our own terminal on desktop, browser and mobile, with one login across every screen.',
+  opts: [
+    { id: 'desktop', label: 'Desktop', title: 'A full workstation on Windows', href: p('ntrader-windows'), icon: 'desktop' },
+    { id: 'web', label: 'Web', title: 'Open a browser and trade', href: LOGIN, icon: 'web' },
+    { id: 'mobile', label: 'Mobile', title: 'Markets in your pocket', href: p('ntrader-mobile'), icon: 'mobile' }
+  ]
+}
 
 export const FAQ = [
   { q: 'What is trading?', a: 'Trading is the process of buying and selling financial instruments such as forex, stocks, commodities, indices and cryptocurrencies with the aim to profit from price movements. Traders analyze market trends, economic events and price charts to make informed decisions.' },
@@ -146,12 +152,6 @@ export const FAQ = [
   { q: 'Is trading suitable for everyone?', a: 'Trading can offer opportunities in global financial markets, but it also involves risk. Understand market conditions, risk management and trading strategies before you invest. Artix Global provides demo accounts and educational resources so you can gain experience before you trade with real funds.' },
   { q: 'What is fundamental analysis?', a: 'Fundamental analysis is the study of economic, financial and geopolitical factors that influence market prices, such as interest rates, inflation, employment reports, central bank decisions and global news.' },
   { q: 'What are the risks associated with trading?', a: 'Trading leveraged financial products involves significant risk and may not be suitable for all investors. Market volatility, leverage, liquidity conditions and unexpected economic events can result in substantial gains or losses. Use proper risk management and only trade with funds you can afford to lose.' }
-]
-
-export const POSTS = [
-  { tag: 'Fundamental Analysis', title: 'The Emotional Dynamics of Trading: Navigating Decisions and Psychology', date: '2024-02-15', author: 'Fahim', img: '/img/blog-1.webp', href: p('the-emotional-dynamics-of-trading-navigating-decisions-and-psychology') },
-  { tag: 'Cryptocurrency Trading', title: 'Trading Dynamics: Emotions, Decision-Making, and Psychology', date: '2024-02-15', author: 'Fahim', img: '/img/blog-2.webp', href: p('trading-dynamics-emotions-decision-making-and-psychology') },
-  { tag: 'Fundamental Analysis', title: 'Emotional Intelligence in Trading: Understanding Decisions', date: '2024-02-15', author: 'Fahim', img: '/img/blog-3.webp', href: p('emotional-intelligence-in-trading-understanding-decisions') }
 ]
 
 export const DOCS = [
@@ -166,4 +166,3 @@ export const DOCS = [
 export const RISK = 'Trading leveraged financial products involves significant risk and may not be suitable for all investors. Market volatility, leverage, liquidity conditions and unexpected economic events can result in substantial gains or losses. Only trade with funds you can afford to lose.'
 
 export const fmtUsd = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
-export const fmtDate = (iso: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(iso))

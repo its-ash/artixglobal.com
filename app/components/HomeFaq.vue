@@ -2,6 +2,7 @@
 import gsap from 'gsap'
 import { PhPlus } from '@phosphor-icons/vue'
 
+const { n = '06' } = defineProps<{ n?: string }>()
 const root = ref<HTMLElement | null>(null)
 const open = ref(0)
 
@@ -10,21 +11,12 @@ useMotion(root, ({ reduce }, el) => {
   gsap.from(el.querySelectorAll('[data-q]'), { y: 24, autoAlpha: 0, stagger: 0.06, duration: 0.9, scrollTrigger: { trigger: el, start: 'top 70%', once: true } })
 })
 
-useHead({
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: FAQ.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } }))
-    })
-  }]
-})
+useHead({ script: [ldJson({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) })] })
 </script>
 
 <template>
   <section ref="root" data-scene="0" class="relative py-24 text-center md:py-36" aria-labelledby="fq-h">
-    <SideLabel n="06" text="FAQ" />
+    <SideLabel :n="n" text="FAQ" />
     <div class="wrap flex flex-col items-center">
       <div class="flex flex-col items-center">
         <p class="eyebrow">FAQ</p>

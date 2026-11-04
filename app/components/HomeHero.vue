@@ -18,9 +18,11 @@ useMotion(root, ({ reduce }, el) => {
   const q = gsap.utils.selector(el)
   if (reduce) return
   const split = SplitText.create(q('[data-h]'), { type: 'lines,chars', mask: 'lines', linesClass: 'pb-[0.06em]' })
+  const brand = SplitText.create(q('[data-brand]'), { type: 'chars' })
   enter = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } })
     .from(q('[data-g]'), { yPercent: 30, autoAlpha: 0, duration: 2.4, ease: 'power3.out' }, 0)
     .from(q('[data-k]'), { y: 16, autoAlpha: 0, duration: 0.8 }, 0.1)
+    .fromTo(brand.chars, { z: -1600, autoAlpha: 0, transformPerspective: 900 }, { z: 0, autoAlpha: 1, transformPerspective: 900, duration: 1.6, ease: 'expo.out', stagger: { each: 0.07, from: 'start' } }, 0.05)
     .from(split.chars, { yPercent: 120, duration: 1.2, stagger: { each: 0.025, from: 'center' } }, 0.15)
     .from(q('[data-line]'), { scaleX: 0, duration: 1.4, ease: 'expo.inOut' }, 0.3)
     .from(q('[data-r]'), { y: 24, autoAlpha: 0, duration: 1, stagger: 0.08 }, 0.6)
@@ -31,7 +33,7 @@ useMotion(root, ({ reduce }, el) => {
     .to(q('[data-copy]'), { yPercent: -30, autoAlpha: 0, ease: 'none' }, 0)
     .to(q('[data-g]'), { yPercent: -38, scale: 1.45, ease: 'none' }, 0)
     .to(q('[data-v]'), { yPercent: -60, autoAlpha: 0, ease: 'none' }, 0)
-  return () => split.revert()
+  return () => { split.revert(); brand.revert() }
 })
 
 watch(intro, v => v && enter?.play())
@@ -56,13 +58,11 @@ watch(intro, v => v && enter?.play())
         <span class="relative flex size-2"><span class="absolute inset-0 animate-ping rounded-full bg-up/70 motion-reduce:hidden" /><span class="relative size-2 rounded-full bg-up" /></span>
         Forex and CFD broker on nTrader
       </p>
-      <h1 id="hero-h" data-h class="display mt-6 max-w-[14ch] text-[length:var(--text-hero)]">
+      <p data-brand class="brand mt-6 text-[clamp(2rem,1.1rem+3.4vw,4.25rem)]">Artix Global</p>
+      <h1 id="hero-h" data-h class="display mt-5 max-w-[14ch] text-[length:var(--text-hero)]">
         Built for the <em class="text-red-2">best execution</em>
       </h1>
       <div data-line class="mt-7 h-px w-40 bg-gradient-to-r from-transparent via-red to-transparent" />
-      <p data-r class="mt-7 max-w-[36rem] text-base text-mute md:text-lg">
-        Access top trading liquidity and advanced tools across forex, metals, commodities, stocks, indices and crypto, all from one account.
-      </p>
       <div data-r class="mt-8 grid w-full max-w-sm grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:max-w-none sm:justify-center sm:gap-3">
         <a v-magnetic :href="SIGNUP" class="btn btn-gold !px-4 sm:min-h-14 sm:!px-8 sm:text-base">Start Trading <PhArrowRight :size="18" class="hidden sm:block" /></a>
         <a :href="SIGNUP" class="btn btn-ghost !px-4 backdrop-blur-sm sm:min-h-14 sm:!px-8 sm:text-base">Try Demo Account</a>
@@ -85,6 +85,17 @@ watch(intro, v => v && enter?.play())
   background-size: 72px 72px;
   mask-image: radial-gradient(ellipse 60% 55% at 50% 35%, #000 15%, transparent 75%);
   opacity: 0.45;
+}
+.brand {
+  font-family: var(--font-brand);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-right: -0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--color-fg);
+  text-shadow: 0 2px 24px var(--color-ink);
+  opacity: 0.6;
 }
 .vtext { writing-mode: vertical-rl; rotate: 180deg; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--color-dim); white-space: nowrap; }
 .vtext.right { rotate: none; }

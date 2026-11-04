@@ -1,0 +1,1 @@
+import{n as e,t}from"./B5aVwmtr.js";import{At as n,dt as r,n as i,yt as a}from"./D2H3ZtFR.js";var o=a({__name:`indices-trading`,setup(a){let{desc:o}=e[`indices-trading`];return i({slug:`indices-trading`,title:`Indices Trading | Artix Global`,desc:o}),(e,i)=>{let a=t;return n(),r(a,{slug:`indices-trading`})}}});export{o as default};

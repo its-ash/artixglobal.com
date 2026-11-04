@@ -42,7 +42,7 @@ useMotion(root, ({ reduce }, el) => {
       <p class="mt-10 max-w-2xl text-mute">
         At Artix, we created a trading environment for real-world performance. Whether you are new to the markets or you scale advanced strategies, the nTrader platform gives you speed, reliability and precision.
       </p>
-      <a :href="`${ORIGIN}/about-us/`" class="group mt-6 inline-flex min-h-11 items-center gap-2 text-gold-2">
+      <a href="/about-us/" class="group mt-6 inline-flex min-h-11 items-center gap-2 text-gold-2">
         About Artix Global
         <PhArrowUpRight :size="16" class="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </a>

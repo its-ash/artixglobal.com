@@ -1,13 +1,13 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ n?: string, text: string, side?: 'start' | 'end' }>(), { side: 'start' })
+withDefaults(defineProps<{ n?: string, text: string, side?: 'start' | 'end', tone?: 'light' | 'ink' }>(), { side: 'start', tone: 'light' })
 </script>
 
 <template>
   <div class="pointer-events-none absolute inset-y-0 z-10 hidden w-10 md:block" :class="side === 'start' ? 'left-2 lg:left-5' : 'right-2 lg:right-5'" aria-hidden="true">
     <div class="sticky top-[50svh] -translate-y-1/2">
-      <p class="vlabel flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.32em] text-dim uppercase" :class="{ flip: side === 'start' }">
-        <span v-if="n" class="text-red-2">{{ n }}</span>
-        <span class="block h-10 w-px bg-line-strong" />
+      <p class="vlabel flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.32em] uppercase" :class="[{ flip: side === 'start' }, tone === 'ink' ? 'text-ink/70' : 'text-dim']">
+        <span v-if="n" :class="tone === 'ink' ? 'text-ink' : 'text-red-2'">{{ n }}</span>
+        <span class="block h-10 w-px" :class="tone === 'ink' ? 'bg-ink/30' : 'bg-line-strong'" />
         <span>{{ text }}</span>
       </p>
     </div>

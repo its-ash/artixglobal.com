@@ -50,6 +50,7 @@ const company = NAV.find(g => g.label === 'Company')!.links
       </div>
       <div class="mt-8 flex flex-col items-center gap-3 text-xs text-dim">
         <p>© {{ year }} Artix Global. All rights reserved.</p>
+        <p>Saturn textures: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener noreferrer" class="hover:text-mute hover:underline">Solar System Scope</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" class="hover:text-mute hover:underline">CC BY 4.0</a></p>
         <a :href="SIGNUP" class="text-gold-2 hover:underline">Open an account</a>
       </div>
     </div>

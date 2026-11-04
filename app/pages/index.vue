@@ -1,18 +1,7 @@
 <script setup lang="ts">
-useHead({
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'FinancialService',
-      name: 'Artix Global',
-      url: ORIGIN,
-      logo: `${ORIGIN}/logo.svg`,
-      email: EMAIL,
-      address: { '@type': 'PostalAddress', streetAddress: '3 Arabian Crescent, Leeuwenhof', addressLocality: 'Tygervalley', addressRegion: 'Western Cape', postalCode: '7441', addressCountry: 'ZA' }
-    })
-  }]
-})
+import { SITE_DESC, SITE_TITLE } from '~/utils/site'
+
+usePageSeo({ title: SITE_TITLE, desc: SITE_DESC })
 </script>
 
 <template>
@@ -26,7 +15,6 @@ useHead({
     <HomeAccounts />
     <HomeSteps />
     <HomeFaq />
-    <HomeBlog />
     <HomeCta />
   </div>
 </template>

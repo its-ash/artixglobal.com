@@ -20,7 +20,7 @@ onMounted(() => {
       dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY)
       const t = e.target as Element | null
       const hot = !!t?.closest('a, button, [role="tab"]')
-      const grab = !!t?.closest('.saturn canvas')
+      const grab = !!t?.closest('.moon canvas')
       r.classList.toggle('hot', hot)
       r.classList.toggle('grab', grab)
       document.documentElement.classList.add('has-cursor')

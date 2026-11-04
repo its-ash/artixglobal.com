@@ -3,8 +3,10 @@ import { NEON, NEON_RED } from '~/utils/site'
 
 const TILT_X = 0.42
 const TILT_Z = -0.22
-const R_IN = 1.32
-const R_OUT = 2.6
+const R_IN = 1.24
+const R_OUT = 2.33
+const RING_SPIN = 6.4
+const MAP = { lo: '/img/saturn-1k.webp', hi: '/img/saturn-2k.webp', ring: '/img/saturn-ring.webp' }
 
 const host = ref<HTMLElement | null>(null)
 const failed = ref(false)
@@ -12,17 +14,6 @@ const ready = ref(false)
 const visible = useInView(host, { rootMargin: '0px' })
 let stop = () => {}
 let setRun = (_: boolean) => {}
-
-const NOISE = `
-  float h3(vec3 p){ p = fract(p*.3183099 + .1); p *= 17.; return fract(p.x*p.y*p.z*(p.x + p.y + p.z)); }
-  float n3(vec3 x){
-    vec3 i = floor(x), f = fract(x); f = f*f*(3. - 2.*f);
-    return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
-               mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z);
-  }
-  float fbm3(vec3 p){ float v = 0., a = .5; for(int i = 0; i < 4; i++){ v += a*n3(p); p *= 2.03; a *= .5; } return v; }
-  float h1(float x){ return fract(sin(x*127.1)*43758.5453); }
-  float n1(float x){ float i = floor(x), f = fract(x); return mix(h1(i), h1(i + 1.), f*f*(3. - 2.*f)); }`
 
 const SHADOW = `
   float shadow(vec3 wp, vec3 L){
@@ -36,7 +27,6 @@ onMounted(async () => {
   if (!el) return
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
   const small = matchMedia('(max-width: 767px), (pointer: coarse)').matches
-  const lowCpu = (navigator.hardwareConcurrency ?? 8) <= 4
   const FIT = small ? 1.3 : 0.9
 
   const THREE = await import('three')
@@ -60,11 +50,27 @@ onMounted(async () => {
   scene.add(world)
   saturn.rotation.set(TILT_X, 0, TILT_Z)
 
+  const loader = new THREE.TextureLoader()
+  const load = (url: string) => new Promise<InstanceType<typeof THREE.Texture>>((res, rej) => loader.load(url, res, undefined, rej))
+  let map: InstanceType<typeof THREE.Texture>
+  let ringMap: InstanceType<typeof THREE.Texture>
+  try {
+    [map, ringMap] = await Promise.all([load(small ? MAP.lo : MAP.hi), load(MAP.ring)])
+  } catch {
+    renderer.dispose()
+    renderer.domElement.remove()
+    failed.value = true
+    return
+  }
+  map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy())
+  ringMap.wrapS = ringMap.wrapT = THREE.ClampToEdgeWrapping
+
   const light = new THREE.Vector3(-0.62, 0.38, 0.68).normalize()
   const u = {
+    uMap: { value: map }, uRing: { value: ringMap }, uLl: { value: light.clone() },
     uTime: { value: 0 }, uIntro: { value: reduce ? 1 : 0 }, uL: { value: light },
-    uG: { value: new THREE.Color(NEON) }, uR: { value: new THREE.Color(NEON_RED) },
-    uIn: { value: R_IN }, uOut: { value: R_OUT }, uSize: { value: (small ? 30 : 26) * dpr }
+    uG: { value: new THREE.Color(NEON) },
+    uIn: { value: R_IN }, uOut: { value: R_OUT }
   }
 
   const planet = new THREE.Mesh(
@@ -72,28 +78,29 @@ onMounted(async () => {
     new THREE.ShaderMaterial({
       uniforms: u,
       vertexShader: `
-        varying vec3 vW; varying vec3 vP; varying vec3 vV;
+        varying vec3 vW; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
         void main(){
           vP = position;
+          vUv = uv;
           vW = normalize((modelMatrix*vec4(normal, 0.)).xyz);
           vV = normalize(normalMatrix*normal);
           gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.);
         }`,
       fragmentShader: `
-        uniform vec3 uG, uR, uL; uniform float uTime;
-        varying vec3 vW; varying vec3 vP; varying vec3 vV;
-        ${NOISE}
+        uniform vec3 uG, uL, uLl; uniform float uTime, uIn, uOut; uniform sampler2D uMap, uRing;
+        varying vec3 vW; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
         void main(){
           float lat = vP.y;
-          float turb = fbm3(vec3(vP.x*3., lat*14., vP.z*3.) + vec3(uTime*.04, 0., 0.));
-          float y = lat + (turb - .5)*.07;
-          float bands = n1(y*9.)*.55 + n1(y*23. + 4.)*.3 + n1(y*61. + 9.)*.15;
-          float storm = smoothstep(.06, 0., length(vec2(atan(vP.z, vP.x)*.3 - uTime*.02, lat + .32) - vec2(.4, 0.)))*.6;
-          vec3 cold = vec3(.05, .09, .07);
-          vec3 warm = mix(uG*.42, vec3(.72, .8, .7), .35);
-          vec3 base = mix(cold, warm, smoothstep(.2, .85, bands));
-          base = mix(base, uR*.55, storm);
+          vec3 tex = texture2D(uMap, vUv).rgb;
+          vec3 base = mix(vec3(dot(tex, vec3(.299, .587, .114))), tex, .7)*.78;
           float ndl = dot(vW, uL);
+          vec3 n = normalize(vP);
+          float s = -n.y/(abs(uLl.y) < 1e-4 ? 1e-4 : uLl.y);
+          vec3 hit = n + uLl*s;
+          float rr = length(hit.xz);
+          float rt = (rr - uIn)/(uOut - uIn);
+          float ringA = s > 0. && rt > 0. && rt < 1. ? texture2D(uRing, vec2(rt, .5)).a : 0.;
+          base *= 1. - ringA*.75;
           float day = smoothstep(-.08, .55, ndl);
           float limb = .55 + .45*max(dot(vV, vec3(0., 0., 1.)), 0.);
           vec3 c = base*day*limb + base*.012;
@@ -129,31 +136,26 @@ onMounted(async () => {
     new THREE.ShaderMaterial({
       uniforms: u,
       vertexShader: `
-        varying float vR; varying vec3 vWp;
+        varying float vR; varying float vA; varying vec3 vWp;
         void main(){
           vR = length(position.xy);
+          vA = atan(position.y, position.x);
           vWp = (modelMatrix*vec4(position, 1.)).xyz;
           gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.);
         }`,
       fragmentShader: `
-        uniform vec3 uG, uR, uL; uniform float uIn, uOut, uIntro;
-        varying float vR; varying vec3 vWp;
-        ${NOISE}
+        uniform vec3 uL; uniform float uIn, uOut, uTime; uniform sampler2D uRing;
+        varying float vR; varying float vA; varying vec3 vWp;
         ${SHADOW}
         void main(){
-          float t = (vR - uIn)/(uOut - uIn);
-          float dens = n1(t*90.)*.45 + n1(t*260. + 3.)*.35 + n1(t*700. + 7.)*.2;
-          float cRing = smoothstep(.0, .08, t)*(1. - smoothstep(.16, .3, t))*.35;
-          float bRing = smoothstep(.22, .3, t)*(1. - smoothstep(.6, .62, t));
-          float aRing = smoothstep(.665, .69, t)*(1. - smoothstep(.95, 1., t))*(1. - smoothstep(.0, .006, .006 - abs(t - .87))*.85);
-          float body = cRing + bRing*1.15 + aRing*.85;
-          float a = body*(.25 + .75*dens);
-          float reveal = smoothstep(uIntro*1.3 - .3, uIntro*1.3, 1. - t);
-          vec3 dust = mix(vec3(.82, .86, .8), uG, .28);
-          vec3 col = mix(mix(uR, dust, .55), dust, smoothstep(.12, .35, t));
-          col = mix(col, uG*1.1, smoothstep(.85, 1., t)*.5);
-          float glint = pow(max(dot(normalize(vWp), uL), 0.), 6.)*.35;
-          gl_FragColor = vec4(col*(.55 + .5*dens + glint), a*.8*reveal*shadow(vWp, uL));
+          float t = clamp((vR - uIn)/(uOut - uIn), 0., 1.);
+          vec4 tex = texture2D(uRing, vec2(t, .5));
+          vec3 col = mix(vec3(dot(tex.rgb, vec3(.299, .587, .114))), tex.rgb, .7);
+          float phi = vA + uTime*${RING_SPIN.toFixed(2)}/pow(vR, 1.5);
+          float clump = sin(phi*23. + t*170.)*sin(phi*41. - t*90. + 1.3)*.5 + sin(phi*7. + t*40.)*.5;
+          col *= 1. + clump*.18;
+          float glint = pow(max(dot(normalize(vWp), uL), 0.), 6.)*.3;
+          gl_FragColor = vec4(col*(.7 + glint), tex.a*(.9 + clump*.08)*shadow(vWp, uL));
         }`,
       side: THREE.DoubleSide, transparent: true, depthWrite: false
     })
@@ -162,50 +164,65 @@ onMounted(async () => {
   ring.renderOrder = 1
   saturn.add(ring)
 
-  const N = small || lowCpu ? 1600 : 4200
-  const pos = new Float32Array(N * 3)
-  const rnd = new Float32Array(N)
-  for (let i = 0; i < N; i++) {
-    let r = R_IN + 0.3 + Math.random() * (R_OUT - R_IN - 0.3)
-    if (Math.abs((r - R_IN) / (R_OUT - R_IN) - 0.64) < 0.03) r += 0.1
-    pos.set([r, Math.random() * Math.PI * 2, (Math.random() - 0.5) * 0.03], i * 3)
-    rnd[i] = Math.random()
+  const rockGeo = new THREE.IcosahedronGeometry(1, 1)
+  const rp = rockGeo.attributes.position!
+  for (let i = 0; i < rp.count; i++) {
+    const x = rp.getX(i)
+    const y = rp.getY(i)
+    const z = rp.getZ(i)
+    const k = 0.72 + 0.5 * (Math.sin(x * 12.9 + y * 78.2 + z * 37.7) * 0.5 + 0.5)
+    rp.setXYZ(i, x * k, y * k, z * k)
   }
-  const dustGeo = new THREE.BufferGeometry()
-  dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-  dustGeo.setAttribute('aR', new THREE.BufferAttribute(rnd, 1))
-  const dust = new THREE.Points(dustGeo, new THREE.ShaderMaterial({
+  rockGeo.computeVertexNormals()
+  const ROCKS = small ? 260 : 700
+  const spin = new Float32Array(ROCKS * 4)
+  const tone = new Float32Array(ROCKS)
+  const debris = new THREE.InstancedMesh(rockGeo, new THREE.ShaderMaterial({
     uniforms: u,
     vertexShader: `
-      uniform float uTime, uIntro, uSize; uniform vec3 uL; uniform vec3 uG; uniform vec3 uR;
-      attribute float aR;
-      varying float vA; varying vec3 vC;
-      ${SHADOW}
+      uniform float uTime;
+      attribute vec4 aSpin; attribute float aTone;
+      varying vec3 vN; varying vec3 vWp; varying float vTone;
+      vec3 rot(vec3 v, vec3 k, float a){ return v*cos(a) + cross(k, v)*sin(a) + k*dot(k, v)*(1. - cos(a)); }
       void main(){
-        float r = position.x;
-        float k = clamp(uIntro*1.6 - aR*.6, 0., 1.);
-        k = 1. - pow(1. - k, 3.);
-        float th = position.y + uTime*.5/pow(r, 1.5) + (1. - k)*2.;
-        vec3 p = vec3(cos(th)*r, position.z, sin(th)*r);
-        vec4 wp = modelMatrix*vec4(p, 1.);
-        vec4 mv = viewMatrix*wp;
-        vC = mix(mix(uR, vec3(1.), .4), mix(uG, vec3(1.), .45), smoothstep(${R_IN.toFixed(2)} + .4, ${R_OUT.toFixed(2)} - .4, r));
-        vA = (.35 + .65*aR)*k*shadow(wp.xyz, uL)*(.6 + .4*sin(uTime*3. + aR*80.));
-        gl_PointSize = uSize*(.15 + aR*.25)/-mv.z;
-        gl_Position = projectionMatrix*mv;
+        vec3 k = normalize(aSpin.xyz);
+        float a = uTime*aSpin.w;
+        mat4 m = modelMatrix*instanceMatrix;
+        vec4 wp = m*vec4(rot(position, k, a), 1.);
+        vWp = wp.xyz;
+        vN = normalize(mat3(m)*rot(normal, k, a));
+        vTone = aTone;
+        gl_Position = projectionMatrix*viewMatrix*wp;
       }`,
     fragmentShader: `
-      varying float vA; varying vec3 vC;
+      uniform vec3 uL;
+      varying vec3 vN; varying vec3 vWp; varying float vTone;
+      ${SHADOW}
       void main(){
-        float d = length(gl_PointCoord - .5);
-        if(d > .5) discard;
-        gl_FragColor = vec4(vC, smoothstep(.5, .05, d)*vA);
-      }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
-  }))
-  dust.renderOrder = 3
-  dust.frustumCulled = false
-  saturn.add(dust)
+        vec3 base = mix(vec3(.12, .115, .11), vec3(.36, .33, .3), vTone);
+        float d = max(dot(normalize(vN), uL), 0.);
+        gl_FragColor = vec4(base*(.06 + .94*d*shadow(vWp, uL)), 1.);
+      }`
+  }), ROCKS)
+  const dummy = new THREE.Object3D()
+  const BANDS: [number, number][] = [[0.3, 0.62], [0.69, 0.95]]
+  for (let i = 0; i < ROCKS; i++) {
+    const [a, b] = BANDS[Math.random() < 0.55 ? 0 : 1]!
+    const r = R_IN + (a + Math.random() * (b - a)) * (R_OUT - R_IN)
+    const th = Math.random() * Math.PI * 2
+    const s = Math.random() < 0.06 ? 0.022 + Math.random() * 0.014 : 0.005 + Math.random() ** 2 * 0.014
+    dummy.position.set(Math.cos(th) * r, (Math.random() - 0.5) * 0.03, Math.sin(th) * r)
+    dummy.rotation.set(Math.random() * 6.3, Math.random() * 6.3, Math.random() * 6.3)
+    dummy.scale.set(s, s * (0.6 + Math.random() * 0.4), s * (0.7 + Math.random() * 0.3))
+    dummy.updateMatrix()
+    debris.setMatrixAt(i, dummy.matrix)
+    spin.set([Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, (Math.random() - 0.5) * 1.6], i * 4)
+    tone[i] = Math.random()
+  }
+  rockGeo.setAttribute('aSpin', new THREE.InstancedBufferAttribute(spin, 4))
+  rockGeo.setAttribute('aTone', new THREE.InstancedBufferAttribute(tone, 1))
+  debris.frustumCulled = false
+  saturn.add(debris)
 
   const SEG = 360
   const orbit = (rad: number, tiltX: number, tiltZ: number, speed: number, red: boolean) => {
@@ -281,6 +298,7 @@ onMounted(async () => {
   cv.addEventListener('pointerup', up)
   cv.addEventListener('pointercancel', up)
 
+  const q = new THREE.Quaternion()
   let prev = 0
   let t = 0
   const frame = () => {
@@ -292,8 +310,10 @@ onMounted(async () => {
     u.uTime.value = t
     if (!drag) { dx *= 0.93; dy *= 0.93 }
     planet.rotation.y += dt * 0.06
+    debris.rotation.y -= dt * RING_SPIN * 0.3
     world.rotation.x += (tx + dy - world.rotation.x) * 0.06
     world.rotation.y += (ty + dx - world.rotation.y) * 0.06
+    u.uLl.value.copy(light).applyQuaternion(planet.getWorldQuaternion(q).invert())
     world.scale.setScalar(0.86 + 0.14 * (1 - Math.pow(1 - u.uIntro.value, 3)))
     renderer.render(scene, camera)
   }
