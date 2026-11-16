@@ -3,7 +3,7 @@ import { PhArrowRight } from '@phosphor-icons/vue'
 import { SIGNUP, LOGIN } from '~/utils/site'
 import { ACC_INTRO, ACC_STEPS } from '~/utils/pages/accounts'
 
-const DESC = 'Compare Artix Core, Edge, Elite and Coverage accounts: minimum deposits, spreads, leverage up to 1:200, commissions and stop out levels on nTrader.'
+const DESC = 'Compare Retail, Professional, Arbitrage and Bullion Trader accounts: minimum deposits, spreads from 0.0 pips, leverage up to 1:200 and commissions.'
 
 usePageSeo({ slug: 'accounts', title: 'Account Types | Artix Global', desc: DESC })
 </script>

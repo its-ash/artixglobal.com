@@ -36,7 +36,7 @@ useMotion(root, ({ reduce }, el) => {
     <div data-head class="wrap flex flex-col items-center text-center">
       <p class="eyebrow">Account types</p>
       <h2 id="ac-h" class="display mt-4 max-w-[14ch] text-[length:var(--text-h2)]">An account for <em class="text-red-2">every trader</em></h2>
-      <p class="mt-5 max-w-xl text-mute">Trading accounts for every type of trader, from beginners to professionals, with sharp pricing across forex, CFDs, crypto and more.</p>
+      <p class="mt-5 max-w-xl text-mute">Pick the account that fits how you trade. Every account runs on nTrader with access to FX, metals, indices, commodities, equities and crypto.</p>
       <div class="mt-10 h-16 w-px bg-gradient-to-b from-gold to-transparent" />
     </div>
 
@@ -56,6 +56,7 @@ useMotion(root, ({ reduce }, el) => {
             </div>
 
             <h3 class="display relative mt-6 text-5xl md:text-6xl">{{ a.name }}</h3>
+            <p class="relative mt-4 max-w-sm text-mute">{{ a.desc }}</p>
 
             <div class="relative mt-auto w-full pt-10">
               <p class="font-mono text-[0.68rem] tracking-[0.16em] text-dim uppercase">Minimum deposit</p>

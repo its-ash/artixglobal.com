@@ -1,39 +1,54 @@
-export type TierId = 'core' | 'edge' | 'elite' | 'coverage'
-export interface Tier { id: TierId, name: string, deposit: number, specs: string[] }
+export type TierId = 'retail' | 'professional' | 'arbitrage' | 'bullion'
+export interface Tier { id: TierId, name: string, deposit: number, desc: string, specs: string[] }
 
-export const ACC_INTRO = 'World-class trading accounts tailored for every type of trader, from beginners to professionals. We offer the best pricings around, from multi asset global markets: forex, CFDs, crypto and more!'
+export const ACC_INTRO = 'Pick the account that fits how you trade. Every account runs on nTrader with access to FX, metals, indices, commodities, equities and crypto.'
+
+const SHARED = [
+  'Instruments: FX, metals, indices, commodities, equities, crypto',
+  'Max leverage: 1:200',
+  'Fixed leverage: FX, precious metals, CFDs, equities and crypto',
+  'Dynamic leverage: FX, precious metals, CFDs and equities',
+  'Stop out level: 30%',
+  'Account currency: USD',
+  'Crypto: 0.10% of notional, min ticket $0.05, per side',
+  'Platform: nTrader'
+]
 
 export const TIERS: Tier[] = [
   {
-    id: 'core', name: 'Artix Core', deposit: 500,
-    specs: ['Platform: nTrader', 'Leverage: 1:200', 'Spreads from: 1.5 pips', 'Fixed leverage', 'Dynamic leverage: for forex, precious metals', 'Stop out level: 30%', 'No commission', 'Cryptos: 0.10% NV fee, floor at $0.050']
+    id: 'retail', name: 'Retail Trader', deposit: 500, desc: 'A low-cost start for new and growing traders.',
+    specs: ['Typical spreads from 1.5 pips', 'Commission: None on FX and metals', ...SHARED]
   },
   {
-    id: 'edge', name: 'Artix Edge', deposit: 10000,
-    specs: ['Platform: nTrader', 'Leverage: 1:200', 'Fixed leverage', 'Dynamic leverage', 'Stop out level: 30%', 'Commission: $5 per side', 'Cryptos: 0.10% NV fee, floor at $0.050']
+    id: 'professional', name: 'Professional Trader', deposit: 10000, desc: 'Raw pricing for experienced, active traders.',
+    specs: ['Typical spreads from 0.0 pips', 'Commission: $5 per lot, per side on FX and metals', ...SHARED]
   },
   {
-    id: 'elite', name: 'Artix Elite', deposit: 25000,
-    specs: ['Platform: nTrader', 'Sub zero spreads', 'Max leverage: 1:200', 'Fixed leverage', 'Dynamic leverage', 'Stop out level: 30%', 'Commission: $5 per side', 'Cryptos: 0.10% NV fee, floor at $0.050']
+    id: 'arbitrage', name: 'Arbitrage Trader', deposit: 25000, desc: 'Priority conditions for high-volume trading.',
+    specs: ['Typical spreads from 0.0 pips', 'Commission: $3.5 per lot, per side on FX and metals', ...SHARED]
   },
   {
-    id: 'coverage', name: 'Artix Coverage', deposit: 50000,
-    specs: ['Platform: nTrader', 'Spreads low as 0', 'Leverage: 1:200', 'Fixed leverage', 'Dynamic leverage', 'Stop out level: 30%', 'Commission: $3.5 per side', 'Cryptos: 0.10% NV fee, floor at $0.050']
+    id: 'bullion', name: 'Bullion Trader', deposit: 50000, desc: 'For disciplined traders who put capital preservation first.',
+    specs: ['Typical spreads from 0.0 pips', 'Commission: $3.5 per lot, per side on FX and metals', ...SHARED]
   }
 ]
 
 export interface CompareRow { k: string, v: Record<TierId, string | boolean> }
 
+const all = (v: string | boolean): Record<TierId, string | boolean> => ({ retail: v, professional: v, arbitrage: v, bullion: v })
+
 export const COMPARE: CompareRow[] = [
-  { k: 'Platform', v: { core: 'nTrader', edge: 'nTrader', elite: 'nTrader', coverage: 'nTrader' } },
-  { k: 'Spreads', v: { core: 'From 1.5 pips', edge: false, elite: 'Sub zero', coverage: 'Low as 0' } },
-  { k: 'Leverage', v: { core: '1:200', edge: '1:200', elite: 'Max 1:200', coverage: '1:200' } },
-  { k: 'Fixed leverage', v: { core: true, edge: true, elite: true, coverage: true } },
-  { k: 'Dynamic leverage', v: { core: 'Forex, precious metals', edge: true, elite: true, coverage: true } },
-  { k: 'Stop out level', v: { core: '30%', edge: '30%', elite: '30%', coverage: '30%' } },
-  { k: 'Commission', v: { core: 'No commission', edge: '$5 per side', elite: '$5 per side', coverage: '$3.5 per side' } },
-  { k: 'Cryptos', v: { core: '0.10% NV fee', edge: '0.10% NV fee', elite: '0.10% NV fee', coverage: '0.10% NV fee' } },
-  { k: 'Crypto fee floor', v: { core: '$0.050', edge: '$0.050', elite: '$0.050', coverage: '$0.050' } }
+  { k: 'Best for', v: { retail: 'First live account, swings', professional: 'Intraday, scalps, systems', arbitrage: 'High-volume, priority execution', bullion: 'Hedging, capital preservation' } },
+  { k: 'Typical spreads', v: { retail: 'From 1.5 pips', professional: 'From 0.0 pips', arbitrage: 'From 0.0 pips', bullion: 'From 0.0 pips' } },
+  { k: 'FX and metals commission', v: { retail: 'None', professional: '$5 / lot per side', arbitrage: '$3.5 / lot per side', bullion: '$3.5 / lot per side' } },
+  { k: 'Crypto commission', v: all('0.10% of notional') },
+  { k: 'Crypto min. ticket', v: all('$0.05') },
+  { k: 'Max leverage', v: all('1:200') },
+  { k: 'Fixed leverage', v: all(true) },
+  { k: 'Dynamic leverage', v: all(true) },
+  { k: 'Stop out level', v: all('30%') },
+  { k: 'Account currency', v: all('USD') },
+  { k: 'Platform', v: all('nTrader') }
 ]
 
 export const ACC_STEPS = [

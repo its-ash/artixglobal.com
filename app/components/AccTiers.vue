@@ -34,6 +34,7 @@ useMotion(root, ({ reduce }, el) => {
             </span>
           </div>
           <h3 :id="`tier-${t.id}`" class="display mt-6 text-4xl">{{ t.name }}</h3>
+          <p class="mt-3 text-[0.92rem] text-mute">{{ t.desc }}</p>
           <p class="mt-6 font-mono text-[0.68rem] tracking-[0.16em] text-dim uppercase">Minimum deposit</p>
           <p class="num display mt-2 text-5xl leading-none text-gold-2" :data-amt="t.deposit">{{ fmtUsd(t.deposit) }}</p>
           <a :href="SIGNUP" class="btn btn-gold mt-6 w-full" :aria-label="`Open ${t.name} account`">Open Account <PhArrowRight :size="16" /></a>

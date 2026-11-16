@@ -33,7 +33,7 @@ export interface NavLink { label: string, href: string, note?: string }
 export interface NavGroup { label: string, links: NavLink[] }
 
 export const NAV: NavGroup[] = [
-  { label: 'Accounts', links: [{ label: 'Account types', href: p('accounts'), note: 'Core, Edge, Elite and Coverage' }] },
+  { label: 'Accounts', links: [{ label: 'Account types', href: p('accounts'), note: 'Retail, Professional, Arbitrage and Bullion' }] },
   {
     label: 'Platforms',
     links: [
@@ -89,24 +89,24 @@ export const MARKETS: Market[] = [
   { key: 'crypto', name: 'Crypto', desc: 'Trade price moves of major digital currencies through CFDs on Bitcoin, Ethereum and Ripple.', symbols: ['BTC/USD', 'ETH/USD', 'XRP/USD'], stat: '0.10%', statLabel: 'NV fee, floor $0.050', href: p('crypto-trading'), seed: 31 }
 ]
 
-export interface Account { name: string, deposit: number, tag: string, features: string[] }
+export interface Account { name: string, deposit: number, tag: string, desc: string, features: string[] }
 
 export const ACCOUNTS: Account[] = [
   {
-    name: 'Artix Core', deposit: 500, tag: 'Start here',
-    features: ['Platform: nTrader', 'Spreads from 1.5 pips', 'No commission', 'Leverage 1:200', 'Fixed and dynamic leverage on forex and precious metals', 'Stop out level 30%', 'Crypto: 0.10% NV fee, floor $0.050']
+    name: 'Retail Trader', deposit: 500, tag: 'No FX commission', desc: 'A low-cost start for new and growing traders.',
+    features: ['Spreads: From 1.5 pips', 'Commission: None on FX and metals', 'Crypto: 0.10% of notional, per side', 'Leverage: Up to 1:200', 'Stop out: 30%', 'Currency: USD', 'Platform: nTrader']
   },
   {
-    name: 'Artix Edge', deposit: 10000, tag: 'Active traders',
-    features: ['Platform: nTrader', 'Commission $5 per side', 'Leverage 1:200', 'Fixed and dynamic leverage', 'Stop out level 30%', 'Crypto: 0.10% NV fee, floor $0.050']
+    name: 'Professional Trader', deposit: 10000, tag: 'Zero spreads', desc: 'Raw pricing for experienced, active traders.',
+    features: ['Spreads: From 0.0 pips', 'Commission: $5 per lot, per side', 'Crypto: 0.10% of notional, per side', 'Leverage: Up to 1:200', 'Stop out: 30%', 'Currency: USD', 'Platform: nTrader']
   },
   {
-    name: 'Artix Elite', deposit: 25000, tag: 'Sub-zero spreads',
-    features: ['Platform: nTrader', 'Sub-zero spreads', 'Commission $5 per side', 'Max leverage 1:200', 'Fixed and dynamic leverage', 'Stop out level 30%', 'Crypto: 0.10% NV fee, floor $0.050']
+    name: 'Arbitrage Trader', deposit: 25000, tag: 'Lowest commission', desc: 'Priority conditions for high-volume trading.',
+    features: ['Spreads: From 0.0 pips', 'Commission: $3.5 per lot, per side', 'Crypto: 0.10% of notional, per side', 'Leverage: Up to 1:200', 'Stop out: 30%', 'Currency: USD', 'Platform: nTrader']
   },
   {
-    name: 'Artix Coverage', deposit: 50000, tag: 'Lowest cost',
-    features: ['Platform: nTrader', 'Spreads as low as 0.0', 'Commission $3.5 per side', 'Leverage 1:200', 'Fixed and dynamic leverage', 'Stop out level 30%', 'Crypto: 0.10% NV fee, floor $0.050']
+    name: 'Bullion Trader', deposit: 50000, tag: 'Capital preservation', desc: 'For disciplined traders who put capital preservation first.',
+    features: ['Spreads: From 0.0 pips', 'Commission: $3.5 per lot, per side', 'Crypto: 0.10% of notional, per side', 'Leverage: Up to 1:200', 'Stop out: 30%', 'Currency: USD', 'Platform: nTrader']
   }
 ]
 
