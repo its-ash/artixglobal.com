@@ -19,11 +19,11 @@ useMotion(root, ({ reduce }, el) => {
   <section ref="root" :data-scene="props.scene" class="relative py-24 md:py-36" :aria-labelledby="id">
     <SideLabel :n="n" :text="label" side="end" />
     <PtHead :id="id" :copy="head" />
-    <ul data-list class="wrap mt-6 grid max-w-6xl gap-5 md:grid-cols-3">
+    <ul data-list class="wrap mt-6 grid max-w-6xl gap-5 md:grid-cols-2 xl:grid-cols-4">
       <li v-for="(a, i) in PT_ACCOUNTS" :key="a.name" v-tilt="4" data-acc class="card flex flex-col p-8" :class="{ 'border-gold/50': i === 1 }">
         <h3 class="font-mono text-xs tracking-[0.2em] text-gold uppercase">{{ a.name }}</h3>
         <p class="display num mt-6 text-6xl">{{ a.deposit }}</p>
-        <p class="mt-1 text-sm text-dim">First deposit</p>
+        <p class="mt-1 text-sm text-dim">Minimum deposit</p>
         <p class="mt-6 border-t border-line pt-6 text-sm text-mute">{{ a.markets }}</p>
         <ul class="mt-6 flex flex-1 flex-col gap-3">
           <li v-for="f in a.features" :key="f" class="flex items-center gap-3 text-sm">

@@ -8,10 +8,13 @@ export interface PtStep { n: string, title: string, body: string }
 export interface PtAccount { name: string, deposit: string, markets: string, features: string[] }
 export interface PtHeadCopy { eyebrow: string, title: string, em?: string, lead?: string }
 
+const PT_MARKETS = 'FX, Metals, Indices, Commodities, Equities, Crypto'
+
 export const PT_ACCOUNTS: PtAccount[] = [
-  { name: 'Core Account', deposit: '$50+', markets: 'FX, Metals, Indices, Commodities, Equities, Cryptos', features: ['nTrader Platform', 'Leverage 1:400', '24/7 technical support', 'Personal training', 'Stop out level 30%'] },
-  { name: 'Edge Account', deposit: '$10K+', markets: 'FX, Metals, Indices, Commodities, Equities, Cryptos', features: ['nTrader Platform', 'Leverage 1:200', '24/7 technical support', 'Personal training', 'Stop out level 30%'] },
-  { name: 'Elite Account', deposit: '$25K+', markets: 'FX, Metals, Indices, Commodities, Equities, Cryptos', features: ['nTrader Platform', 'Leverage 1:100', '24/7 technical support', 'Personal training', 'Stop out level 30%'] }
+  { name: 'Retail Trader', deposit: '$500', markets: PT_MARKETS, features: ['nTrader platform', 'Spreads from 1.5 pips', 'No FX commission', 'Leverage up to 1:200', 'Stop out level 30%'] },
+  { name: 'Professional Trader', deposit: '$10K', markets: PT_MARKETS, features: ['nTrader platform', 'Spreads from 0.0 pips', '$5 per lot, per side', 'Leverage up to 1:200', 'Stop out level 30%'] },
+  { name: 'Arbitrage Trader', deposit: '$25K', markets: PT_MARKETS, features: ['nTrader platform', 'Spreads from 0.0 pips', '$3.5 per lot, per side', 'Leverage up to 1:200', 'Stop out level 30%'] },
+  { name: 'Bullion Trader', deposit: '$50K', markets: PT_MARKETS, features: ['nTrader platform', 'Spreads from 0.0 pips', '$3.5 per lot, per side', 'Leverage up to 1:200', 'Stop out level 30%'] }
 ]
 
 export const IB = {
@@ -87,7 +90,7 @@ export const WL = {
     head: { eyebrow: 'nTrader white label', title: 'Far more than', em: 'licensing technology' } as PtHeadCopy,
     body: [
       'Partnering with Artix Global means far more than licensing technology. Our White-Label solution gives you nTrader, a robust, fully branded platform designed for speed, reliability, and scalability.',
-      'You gain access to institutional liquidity, multi-asset trading, and dedicated Coverage Account conditions that strengthen your edge against competition.',
+      'You gain access to institutional liquidity, multi-asset trading, and dedicated Bullion Trader account conditions that strengthen your edge against competition.',
       'From compliance guidance to marketing support, from fast deployment to continuous innovation, Artix Global delivers a complete ecosystem so you can launch confidently, grow sustainably, and maintain the credibility your clients demand.'
     ],
     img: { src: '/img/partners/ntrader-white-label.webp', w: 794, h: 528, alt: 'nTrader white-label trading platform' }
@@ -102,16 +105,16 @@ export const WL = {
     ] as PtFeature[]
   },
   band: {
-    eyebrow: 'Coverage terms',
+    eyebrow: 'Bullion Trader terms',
     title: 'Dedicated',
     em: 'account',
-    lead: 'Access to Artix Coverage Account terms to offer clients professional pricing and advanced risk control features.',
+    lead: 'Access to Bullion Trader account terms to offer clients professional pricing and advanced risk control features.',
     cta: 'Open Account'
   },
   steps: {
     head: { eyebrow: 'Launch', title: 'Your broker in', em: '3 steps' } as PtHeadCopy,
     items: [
-      { n: '01', title: 'Competitive Edge', body: 'The Coverage Account equips your brokerage with unmatched execution quality, tailored pricing, and institutional-level liquidity. With Artix Global as your liquidity provider, you will always be ready to outperform and out-deliver in competitive markets.' },
+      { n: '01', title: 'Competitive Edge', body: 'The Bullion Trader account equips your brokerage with unmatched execution quality, tailored pricing, and institutional-level liquidity. With Artix Global as your liquidity provider, you will always be ready to outperform and out-deliver in competitive markets.' },
       { n: '02', title: 'Broad Market Access', body: 'Offer your clients a diverse portfolio, from FX and metals to indices, commodities, equities, and crypto. Extensive trading assets ensure brokers attract all types of traders with confidence and versatility.' },
       { n: '03', title: 'Flexible Liquidity', body: 'Enjoy scalable liquidity solutions with tight spreads and adaptable margins. Artix Global helps new brokers remain competitive, balancing risk management with flexibility to capture market share and support lasting growth.' }
     ] as PtStep[],
