@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { damp } from '~/utils/gl'
+
 const SCALE = 0.5
 
 const host = ref<HTMLCanvasElement | null>(null)
@@ -74,17 +76,18 @@ onMounted(() => {
   let time = 12
   let raf = 0
   let last = 0
-  const draw = (t: number) => {
-    m.x += (m.tx - m.x) * 0.04
-    m.y += (m.ty - m.y) * 0.04
+  const draw = (t: number, dt = 0) => {
+    m.x = damp(m.x, m.tx, 2.45, dt)
+    m.y = damp(m.y, m.ty, 2.45, dt)
     gl.uniform1f(uT, t)
     gl.uniform2f(uM, m.x, -m.y)
     gl.drawArrays(gl.TRIANGLES, 0, 3)
   }
   const loop = (now: number) => {
-    time += Math.min(now - (last || now), 50) / 1000
+    const dt = Math.min(now - (last || now), 50) / 1000
+    time += dt
     last = now
-    draw(time)
+    draw(time, dt)
     raf = requestAnimationFrame(loop)
   }
   const ro = new ResizeObserver(resize)

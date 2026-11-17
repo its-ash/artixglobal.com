@@ -1,0 +1,1 @@
+import{n as e,t}from"./DzLi4ptq.js";import{Mt as n,n as r,pt as i,xt as a}from"./BPcH9Tco.js";var o=a({__name:`forex-trading`,setup(a){let{desc:o}=e[`forex-trading`];return r({slug:`forex-trading`,title:`Forex Trading | Artix Global`,desc:o}),(e,r)=>{let a=t;return n(),i(a,{slug:`forex-trading`})}}});export{o as default};

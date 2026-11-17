@@ -5,6 +5,12 @@ import { PhArrowLeft, PhCalendarBlank, PhClock, PhUser } from '@phosphor-icons/v
 import { POSTS, catName, clip, excerpt, fmtDate, readMins, type Post } from '~/utils/pages/blog'
 import { OG_IMG, ORG_ID, ORIGIN, SITE_NAME } from '~/utils/site'
 
+// Only known post slugs match this catch-all route; anything else (stray
+// requests like /dev-sw.js or /favicon.png) gets a plain 404 before setup runs.
+definePageMeta({
+  validate: route => POSTS.some(p => p.slug === String(route.params.post ?? ''))
+})
+
 const route = useRoute()
 const slug = String(route.params.post ?? '')
 const i = POSTS.findIndex(p => p.slug === slug)

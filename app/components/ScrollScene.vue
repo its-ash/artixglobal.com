@@ -2,6 +2,7 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { NEON, NEON_RED } from '~/utils/site'
+import { adaptiveDpr, damp } from '~/utils/gl'
 
 const SHAPES = 5
 const host = ref<HTMLElement | null>(null)
@@ -56,9 +57,10 @@ onMounted(async () => {
   shapes.forEach((s, i) => geo.setAttribute(i ? `a${i}` : 'position', new THREE.BufferAttribute(s, 3)))
   geo.setAttribute('aR', new THREE.BufferAttribute(Float32Array.from({ length: N }, Math.random), 1))
 
+  const SIZE = small ? 54 : 44
   const u = {
     uTime: { value: 0 }, uFrom: { value: 0 }, uTo: { value: 0 }, uMix: { value: 1 }, uVel: { value: 0 },
-    uSize: { value: (small ? 54 : 44) * dpr },
+    uSize: { value: SIZE * dpr },
     uNeon: { value: new THREE.Color(NEON) }, uRed: { value: new THREE.Color(NEON_RED) }
   }
   const mat = new THREE.ShaderMaterial({
@@ -102,9 +104,18 @@ onMounted(async () => {
   const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 60)
   cam.position.set(0, 0, 9)
 
+  // The host is sized to the large viewport (100lvh), so touch browsers showing or
+  // hiding the URL bar do not change it: no buffer reallocation, no flash.
+  let lastW = 0
+  let lastH = 0
   const resize = () => {
-    renderer.setSize(innerWidth, innerHeight, false)
-    cam.aspect = innerWidth / innerHeight
+    const w = el.clientWidth || innerWidth
+    const h = el.clientHeight || innerHeight
+    if (w === lastW && h === lastH) return
+    lastW = w
+    lastH = h
+    renderer.setSize(w, h, false)
+    cam.aspect = w / h
     cam.position.z = cam.aspect < 1 ? 12 : 9
     cam.updateProjectionMatrix()
   }
@@ -141,28 +152,40 @@ onMounted(async () => {
   setTimeout(scan, 0)
   const unhook = nuxt.hook('page:finish', () => { setTimeout(scan, 0) })
 
-  let prev = 0
+  const quality = adaptiveDpr(dpr, 0.75, (d) => {
+    renderer.setPixelRatio(d)
+    u.uSize.value = SIZE * d
+  })
+
+  // Rendered on the GSAP ticker (after Lenis updates the scroll), so the scene
+  // moves in the same frame as the page instead of one frame behind it.
   let t = 0
-  let raf = 0
-  const frame = (now: number) => {
-    const dt = prev ? Math.min((now - prev) / 1000, 0.05) : 0
-    prev = now
+  let fresh = true
+  const sm = { x: 0, y: 0 }
+  const frame = (_time: number, deltaMs: number) => {
+    const raw = fresh ? 0 : deltaMs / 1000
+    fresh = false
+    const dt = Math.min(raw, 0.05)
+    quality(raw)
     t += dt
-    st.sp += (st.p - st.sp) * 0.08
+    st.sp = damp(st.sp, st.p, 5, dt)
+    sm.x = damp(sm.x, st.mx, 3, dt)
+    sm.y = damp(sm.y, st.my, 3, dt)
     const vel = Math.max(-1, Math.min(1, (nuxt.$lenis as { velocity?: number } | null)?.velocity ?? 0) / 40)
-    u.uVel.value += (vel - u.uVel.value) * 0.1
+    u.uVel.value = damp(u.uVel.value, vel, 6, dt)
     u.uTime.value = t
-    group.rotation.y = st.sp * Math.PI * 2 + st.spin + t * 0.03 + st.mx * 0.25
-    group.rotation.x = Math.sin(st.sp * Math.PI * 3) * 0.25 + st.my * 0.15
+    group.rotation.y = st.sp * Math.PI * 2 + st.spin + t * 0.03 + sm.x * 0.25
+    group.rotation.x = Math.sin(st.sp * Math.PI * 3) * 0.25 + sm.y * 0.15
     group.position.y = Math.sin(st.sp * Math.PI * 2) * 0.6
-    cam.position.y += ((-st.my * 0.6) - cam.position.y) * 0.05
+    cam.position.y = damp(cam.position.y, -sm.y * 0.6, 3, dt)
     cam.lookAt(0, 0, 0)
     renderer.render(scene, cam)
-    raf = requestAnimationFrame(frame)
   }
+  let running = false
   const run = (on: boolean) => {
-    if (on && !raf) { prev = 0; raf = requestAnimationFrame(frame) }
-    if (!on && raf) { cancelAnimationFrame(raf); raf = 0 }
+    if (on === running) return
+    running = on
+    if (on) { fresh = true; gsap.ticker.add(frame) } else gsap.ticker.remove(frame)
   }
   const vis = () => run(!document.hidden && !reduce)
   document.addEventListener('visibilitychange', vis)
@@ -189,7 +212,7 @@ onBeforeUnmount(() => stop())
 </script>
 
 <template>
-  <div ref="host" class="scene pointer-events-none fixed inset-0 -z-10" aria-hidden="true" />
+  <div ref="host" class="scene pointer-events-none fixed top-0 left-0 -z-10 h-lvh w-full" aria-hidden="true" />
 </template>
 
 <style scoped>

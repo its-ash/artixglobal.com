@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NEON, NEON_RED } from '~/utils/site'
+import { adaptiveDpr, damp } from '~/utils/gl'
 
 const host = ref<HTMLElement | null>(null)
 const visible = useInView(host, { rootMargin: '100px' })
@@ -31,9 +32,10 @@ onMounted(async () => {
   const [sx, sz] = small ? [90, 46] : [170, 80]
   const geo = new THREE.PlaneGeometry(26, 14, sx, sz)
   geo.rotateX(-Math.PI / 2)
+  const SIZE = small ? 2.6 : 2.2
   const u = {
     uTime: { value: 0 }, uM: { value: new THREE.Vector2() },
-    uSize: { value: (small ? 2.6 : 2.2) * dpr },
+    uSize: { value: SIZE * dpr },
     uNeon: { value: new THREE.Color(NEON) }, uRed: { value: new THREE.Color(NEON_RED) }
   }
   const mat = new THREE.ShaderMaterial({
@@ -82,14 +84,21 @@ onMounted(async () => {
     if (!raf) renderer.render(scene, cam)
   }
 
+  const quality = adaptiveDpr(dpr, 0.75, (d) => {
+    renderer.setPixelRatio(d)
+    u.uSize.value = SIZE * d
+  })
   let raf = 0
   let prev = 0
   let t = 4
   const frame = (now: number) => {
-    t += Math.min(now - (prev || now), 50) / 1000
+    const raw = (now - (prev || now)) / 1000
+    const dt = Math.min(raw, 0.05)
     prev = now
-    m.x += (m.tx - m.x) * 0.04
-    m.y += (m.ty - m.y) * 0.04
+    quality(raw)
+    t += dt
+    m.x = damp(m.x, m.tx, 2.45, dt)
+    m.y = damp(m.y, m.ty, 2.45, dt)
     u.uTime.value = t
     u.uM.value.set(m.x, m.y)
     pts.rotation.y = m.x * 0.18

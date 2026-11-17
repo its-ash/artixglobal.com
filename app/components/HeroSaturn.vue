@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NEON, NEON_RED } from '~/utils/site'
+import { adaptiveDpr, damp } from '~/utils/gl'
 
 const TILT_X = 0.42
 const TILT_Z = -0.22
@@ -30,14 +31,15 @@ onMounted(async () => {
   const FIT = small ? 1.3 : 0.9
 
   const THREE = await import('three')
+  const dpr = Math.min(devicePixelRatio || 1, small ? 1.5 : 2)
   let renderer: InstanceType<typeof THREE.WebGLRenderer>
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+    // MSAA only pays off at low pixel ratios; on retina screens it just costs fill rate.
+    renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, alpha: true, powerPreference: 'high-performance' })
   } catch {
     failed.value = true
     return
   }
-  const dpr = Math.min(devicePixelRatio || 1, small ? 1.5 : 2)
   renderer.setPixelRatio(dpr)
   renderer.setClearColor(0x000000, 0)
   el.appendChild(renderer.domElement)
@@ -74,7 +76,7 @@ onMounted(async () => {
   }
 
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 128, 128),
+    new THREE.SphereGeometry(1, 96, 64),
     new THREE.ShaderMaterial({
       uniforms: u,
       vertexShader: `
@@ -114,7 +116,7 @@ onMounted(async () => {
   saturn.add(planet)
 
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.025, 96, 96),
+    new THREE.SphereGeometry(1.025, 72, 48),
     new THREE.ShaderMaterial({
       uniforms: u,
       vertexShader: 'varying vec3 vV; varying vec3 vW; void main(){ vV = normalize(normalMatrix*normal); vW = normalize((modelMatrix*vec4(normal, 0.)).xyz); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
@@ -254,6 +256,24 @@ onMounted(async () => {
   const orbits = [orbit(3.25, 0.32, 0.1, 0.05, false), orbit(3.75, 0.55, -0.35, -0.035, true)]
   orbits.forEach(o => world.add(o))
 
+  // Upload textures and compile shaders before the first animated frame, so the
+  // intro does not stall on a 2k texture upload or a synchronous shader link.
+  renderer.initTexture(map)
+  renderer.initTexture(ringMap)
+  try {
+    await renderer.compileAsync(scene, camera)
+  } catch {}
+  if (!el.isConnected) {
+    scene.traverse((o) => {
+      const m = o as unknown as { geometry?: { dispose: () => void }, material?: { dispose: () => void } }
+      m.geometry?.dispose()
+      m.material?.dispose()
+    })
+    renderer.dispose()
+    renderer.domElement.remove()
+    return
+  }
+
   const resize = () => {
     const w = el.clientWidth
     const h = el.clientHeight
@@ -298,21 +318,28 @@ onMounted(async () => {
   cv.addEventListener('pointerup', up)
   cv.addEventListener('pointercancel', up)
 
+  const quality = adaptiveDpr(dpr, 1, d => renderer.setPixelRatio(d))
   const q = new THREE.Quaternion()
   let prev = 0
   let t = 0
   const frame = () => {
     const now = performance.now()
-    const dt = prev ? Math.min((now - prev) / 1000, 0.05) : 0
+    const raw = prev ? (now - prev) / 1000 : 0
+    const dt = Math.min(raw, 0.05)
     prev = now
+    quality(raw)
     t += dt
     if (u.uIntro.value < 1) u.uIntro.value = Math.min(1, u.uIntro.value + dt / 2.8)
     u.uTime.value = t
-    if (!drag) { dx *= 0.93; dy *= 0.93 }
+    if (!drag) {
+      const k = Math.exp(-4.35 * dt)
+      dx *= k
+      dy *= k
+    }
     planet.rotation.y += dt * 0.06
     debris.rotation.y -= dt * RING_SPIN * 0.3
-    world.rotation.x += (tx + dy - world.rotation.x) * 0.06
-    world.rotation.y += (ty + dx - world.rotation.y) * 0.06
+    world.rotation.x = damp(world.rotation.x, tx + dy, 3.7, dt)
+    world.rotation.y = damp(world.rotation.y, ty + dx, 3.7, dt)
     u.uLl.value.copy(light).applyQuaternion(planet.getWorldQuaternion(q).invert())
     world.scale.setScalar(0.86 + 0.14 * (1 - Math.pow(1 - u.uIntro.value, 3)))
     renderer.render(scene, camera)

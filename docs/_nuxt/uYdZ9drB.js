@@ -1,1 +1,0 @@
-import{n as e,t}from"./pCyEFvVb.js";import{At as n,dt as r,n as i,yt as a}from"./CKYotDDl.js";var o=a({__name:`precious-metals`,setup(a){let{desc:o}=e[`precious-metals`];return i({slug:`precious-metals`,title:`Precious Metals Trading | Artix Global`,desc:o}),(e,i)=>{let a=t;return n(),r(a,{slug:`precious-metals`})}}});export{o as default};
