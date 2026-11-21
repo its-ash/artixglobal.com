@@ -1,0 +1,1 @@
+import{n as e,t}from"./fvcUmyOC.js";import{Mt as n,n as r,pt as i,xt as a}from"./6Bk_josR.js";var o=a({__name:`commodities-trading`,setup(a){let{desc:o}=e[`commodities-trading`];return r({slug:`commodities-trading`,title:`Commodities Trading | Artix Global`,desc:o}),(e,r)=>{let a=t;return n(),i(a,{slug:`commodities-trading`})}}});export{o as default};

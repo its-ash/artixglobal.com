@@ -1,0 +1,1 @@
+import{n as e,t}from"./fvcUmyOC.js";import{Mt as n,n as r,pt as i,xt as a}from"./6Bk_josR.js";var o=a({__name:`stocks-trading`,setup(a){let{desc:o}=e[`stocks-trading`];return r({slug:`stocks-trading`,title:`Stock CFD Trading | Artix Global`,desc:o}),(e,r)=>{let a=t;return n(),i(a,{slug:`stocks-trading`})}}});export{o as default};

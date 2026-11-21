@@ -6,7 +6,8 @@ const TILT_X = 0.42
 const TILT_Z = -0.22
 const R_IN = 1.24
 const R_OUT = 2.33
-const RING_SPIN = 6.4
+const RING_SPIN = 2.8
+const OBLATE = 0.91
 const MAP = { lo: '/img/saturn-1k.webp', hi: '/img/saturn-2k.webp', ring: '/img/saturn-ring.webp' }
 
 const host = ref<HTMLElement | null>(null)
@@ -89,47 +90,70 @@ onMounted(async () => {
           gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.);
         }`,
       fragmentShader: `
-        uniform vec3 uG, uL, uLl; uniform float uTime, uIn, uOut; uniform sampler2D uMap, uRing;
+        uniform vec3 uL, uLl; uniform float uTime, uIn, uOut; uniform sampler2D uMap, uRing;
         varying vec3 vW; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
         void main(){
-          float lat = vP.y;
-          vec3 tex = texture2D(uMap, vUv).rgb;
-          vec3 base = mix(vec3(dot(tex, vec3(.299, .587, .114))), tex, .7)*.78;
+          // Subtle differential atmospheric band drift near the equator
+          float eq = 1. - clamp(abs(vP.y), 0., 1.);
+          vec2 uv = vec2(fract(vUv.x + uTime * 0.0018 * (0.4 + eq * 0.6)), vUv.y);
+          vec3 tex = texture2D(uMap, uv).rgb;
+          // Preserve Saturn's natural warm cream, ochre and pale gold-beige bands
+          vec3 luma = vec3(dot(tex, vec3(.299, .587, .114)));
+          vec3 base = mix(luma, tex, .92) * .96;
+
           float ndl = dot(vW, uL);
+          float ndv = max(dot(vV, vec3(0., 0., 1.)), 0.);
+
+          // Ray-plane intersection for accurate ring shadow cast onto Saturn's clouds
           vec3 n = normalize(vP);
-          float s = -n.y/(abs(uLl.y) < 1e-4 ? 1e-4 : uLl.y);
-          vec3 hit = n + uLl*s;
+          float s = -n.y / (abs(uLl.y) < 1e-4 ? 1e-4 : uLl.y);
+          vec3 hit = n + uLl * s;
           float rr = length(hit.xz);
-          float rt = (rr - uIn)/(uOut - uIn);
+          float rt = (rr - uIn) / (uOut - uIn);
           float ringA = s > 0. && rt > 0. && rt < 1. ? texture2D(uRing, vec2(rt, .5)).a : 0.;
-          base *= 1. - ringA*.75;
-          float day = smoothstep(-.08, .55, ndl);
-          float limb = .55 + .45*max(dot(vV, vec3(0., 0., 1.)), 0.);
-          vec3 c = base*day*limb + base*.012;
-          float scan = smoothstep(.012, 0., abs(lat - sin(uTime*.35)*.96))*.55;
-          c += uG*scan*(.25 + .75*day);
+          float ringShadow = 1. - ringA * .82;
+
+          // Gas-giant Minnaert-inspired limb darkening + crisp twilight terminator
+          float day = smoothstep(-.12, .52, ndl);
+          float limb = pow(ndv, .38);
+          float wrap = smoothstep(-.3, .2, ndl) * (1. - day);
+          vec3 twilight = vec3(.72, .52, .34) * wrap * .16;
+
+          // Subtle ring-shine bounce illuminating Saturn's shadowed night hemisphere
+          float ringShine = (1. - day) * smoothstep(.9, 0., abs(vP.y)) * .038;
+          vec3 bounce = base * vec3(.95, .92, .85) * ringShine;
+
+          // Soft pale-ivory high-altitude atmospheric haze at the sunlit limb
+          float haze = pow(1. - ndv, 3.6) * smoothstep(-.15, .45, ndl);
+          vec3 atmoTint = vec3(.94, .9, .82) * haze * .26;
+
+          vec3 c = base * (day * limb * ringShadow + .01) + twilight * ringShadow + bounce + atmoTint;
           gl_FragColor = vec4(c, 1.);
         }`
     })
   )
+  planet.scale.set(1, OBLATE, 1)
   planet.renderOrder = 0
   saturn.add(planet)
 
+  // Subtle realistic sunlit atmospheric scattering halo (warm pale ivory, no green overlay)
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.025, 72, 48),
+    new THREE.SphereGeometry(1.018, 72, 48),
     new THREE.ShaderMaterial({
       uniforms: u,
       vertexShader: 'varying vec3 vV; varying vec3 vW; void main(){ vV = normalize(normalMatrix*normal); vW = normalize((modelMatrix*vec4(normal, 0.)).xyz); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
       fragmentShader: `
-        uniform vec3 uG, uL; uniform float uIntro; varying vec3 vV; varying vec3 vW;
+        uniform vec3 uL; uniform float uIntro; varying vec3 vV; varying vec3 vW;
         void main(){
-          float fres = pow(1. - max(dot(vV, vec3(0., 0., 1.)), 0.), 5.);
-          float lit = smoothstep(-.25, .5, dot(vW, uL));
-          gl_FragColor = vec4(mix(uG, vec3(.85, 1., .9), .35), fres*lit*.85*uIntro);
+          float fres = pow(1. - max(dot(vV, vec3(0., 0., 1.)), 0.), 5.5);
+          float lit = smoothstep(-.18, .55, dot(vW, uL));
+          vec3 col = mix(vec3(.88, .82, .7), vec3(.96, .94, .88), lit);
+          gl_FragColor = vec4(col, fres * lit * .32 * uIntro);
         }`,
       blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
     })
   )
+  atmo.scale.set(1, OBLATE, 1)
   atmo.renderOrder = 4
   saturn.add(atmo)
 
@@ -152,12 +176,16 @@ onMounted(async () => {
         void main(){
           float t = clamp((vR - uIn)/(uOut - uIn), 0., 1.);
           vec4 tex = texture2D(uRing, vec2(t, .5));
-          vec3 col = mix(vec3(dot(tex.rgb, vec3(.299, .587, .114))), tex.rgb, .7);
+          vec3 luma = vec3(dot(tex.rgb, vec3(.299, .587, .114)));
+          vec3 col = mix(luma, tex.rgb, .88);
           float phi = vA + uTime*${RING_SPIN.toFixed(2)}/pow(vR, 1.5);
+          // Fine concentric ringlets + subtle Keplerian icy clumping
+          float ringlets = sin(t * 260.) * .045 + sin(t * 620.) * .025;
           float clump = sin(phi*23. + t*170.)*sin(phi*41. - t*90. + 1.3)*.5 + sin(phi*7. + t*40.)*.5;
-          col *= 1. + clump*.18;
-          float glint = pow(max(dot(normalize(vWp), uL), 0.), 6.)*.3;
-          gl_FragColor = vec4(col*(.7 + glint), tex.a*(.9 + clump*.08)*shadow(vWp, uL));
+          col *= 1. + clump*.12 + ringlets;
+          float sunPhase = pow(max(dot(normalize(vWp), uL), 0.), 3.5);
+          float sh = shadow(vWp, uL);
+          gl_FragColor = vec4(col * (.78 + sunPhase * .34) * sh, tex.a * (.92 + clump * .06));
         }`,
       side: THREE.DoubleSide, transparent: true, depthWrite: false
     })

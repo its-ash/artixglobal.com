@@ -10,7 +10,12 @@ export const SITE_TITLE = 'Artix Global | Trade Global Markets on nTrader'
 export const SITE_DESC = 'Trade forex, precious metals, commodities, stocks, indices and crypto on nTrader. Raw spreads from 0.0 pips, leverage up to 1:200, start from $50.'
 
 export interface OgImg { src: string, w?: number, h?: number, alt: string }
-export const OG_IMG: OgImg = { src: '/img/ntrader-windows/chart.webp', w: 1600, h: 1172, alt: 'nTrader trading terminal by Artix Global' }
+export const OG_IMG: OgImg = {
+  src: '/og/artix-global.jpg?v=2',
+  w: 1200,
+  h: 630,
+  alt: 'Artix Global — Instant access to global markets on nTrader. Start from $50, leverage up to 1:200.'
+}
 
 export const ORG_ID = `${ORIGIN}/#org`
 export const ORG = {

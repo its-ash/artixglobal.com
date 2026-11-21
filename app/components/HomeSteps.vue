@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import gsap from 'gsap'
 import { PhArrowRight } from '@phosphor-icons/vue'
+import type { GlobalMascotPose } from './BearMascot.vue'
 
+const POSES: GlobalMascotPose[] = ['signup', 'verify', 'trade']
 const root = ref<HTMLElement | null>(null)
 
 useMotion(root, ({ reduce }, el) => {
@@ -40,6 +42,13 @@ useMotion(root, ({ reduce }, el) => {
           <span data-big class="display pointer-events-none absolute inset-x-0 -top-14 select-none text-center text-[9rem] leading-none text-fg/[0.04] md:text-[12rem]" :class="i % 2 ? 'md:text-left' : 'md:text-right'" aria-hidden="true">{{ s.n }}</span>
           <h3 data-in class="display relative text-4xl md:text-5xl">{{ s.title }}</h3>
           <p data-in class="relative mt-3 max-w-sm text-mute">{{ s.body }}</p>
+        </div>
+        <div
+          data-in
+          class="mt-6 flex justify-center md:row-start-1 md:mt-0"
+          :class="i % 2 ? 'md:col-start-1 md:justify-end' : 'md:col-start-3 md:justify-start'"
+        >
+          <BearMascot :pose="POSES[i] ?? 'stand'" decorative class="w-40 md:w-48" />
         </div>
         <div v-if="i < STEPS.length - 1" class="my-8 h-24 w-px bg-line md:col-start-2 md:row-start-2 md:my-4 md:h-36 md:justify-self-center">
           <div data-seg class="h-full w-full origin-top bg-gold" />

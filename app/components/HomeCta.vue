@@ -19,7 +19,7 @@ useMotion(root, ({ reduce }, el) => {
 
 <template>
   <section ref="root" data-scene="4" class="wrap pb-24 md:pb-32" aria-labelledby="cta-h">
-    <div data-frame class="relative isolate overflow-hidden rounded-[2rem] border border-line">
+    <div data-frame class="group relative isolate overflow-hidden rounded-[2rem] border border-line">
       <ClientOnly><GoldField /></ClientOnly>
       <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(10_11_13/.55),rgb(10_11_13/.2)_70%)]" />
       <div class="relative flex min-h-[32rem] flex-col items-center justify-center px-6 py-20 text-center md:min-h-[38rem]">
@@ -32,6 +32,7 @@ useMotion(root, ({ reduce }, el) => {
         </div>
         <p data-r class="mt-8 text-xs text-fg/60">*Leverage depends on account type and instrument.</p>
       </div>
+      <BearMascot decorative class="pointer-events-none absolute right-6 bottom-0 hidden w-48 translate-y-6 transition-transform duration-700 ease-out group-hover:translate-y-2 md:block lg:right-12 lg:w-56 motion-reduce:transition-none" />
     </div>
   </section>
 </template>

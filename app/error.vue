@@ -17,6 +17,7 @@ const home = () => clearError({ redirect: '/' })
 <template>
   <div class="grain">
     <main id="main" class="wrap flex min-h-[100svh] flex-col items-center justify-center py-24 text-center">
+      <BearMascot pose="oops" eager class="mb-6 w-44 md:w-52" />
       <p class="eyebrow flex items-center gap-3">
         <span class="size-1.5 rounded-full bg-gold" /><span class="num">{{ error.statusCode }}</span><span class="size-1.5 rounded-full bg-gold" />
       </p>
